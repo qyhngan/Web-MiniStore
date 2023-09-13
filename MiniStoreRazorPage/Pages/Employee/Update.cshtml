@@ -1,0 +1,390 @@
+﻿@page
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using BusinessObject;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Employee.UpdateModel
+@{
+    IPositionRepository positionRepository = new PositionRepository();
+    var positions = positionRepository.GetPositions().Where(x => x.Name != "Manager" && x.Name != "User");
+    //Get Role & AccID from session memory
+    string role = HttpContext.Session.GetString("Role");
+    int accID = Convert.ToInt32(HttpContext.Session.GetString("AccID"));
+    int empId = 0;
+    //If role is Manager
+    if (role == "Manager")
+    {
+        //get empID from session memory
+        empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeID"));
+    }
+    else
+    {
+        empId = accID;
+    }
+    //get employee with empID
+    Employee employee = new EmployeeRepository().GetEmployees().Where(x => x.EmpId == empId).FirstOrDefault();
+    //Get Position with employee's position id
+    Position currentPosition = positionRepository.GetPositions().Where(x => x.PosId == employee.PosId).FirstOrDefault();
+
+    string readonlyAttribute = (role != "Manager" || employee.Status == 0) ? "readonly" : "";
+
+    ISalaryRepository salaryRepository = new SalaryRepository();
+
+    var existNewSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 2).FirstOrDefault();
+    var existPendingSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 1).FirstOrDefault();
+
+}
+@if (ViewData["Message"] != null)
+{
+    <a href="/Employee/Manage" class="btn btn-primary btn-right">Quay về</a>
+    <br />
+    <div class="alert alert-success" role="alert">
+        @Html.Raw(ViewData["Message"])
+    </div>
+    <br />
+}
+@if (role == "Manager")
+{
+    if (employee.Status == 0)
+    {
+        //Warning message
+        <div class="alert alert-danger" role="alert">
+            Nhân viên này đã nghỉ việc, vui lòng kích hoạt để cập nhật thông tin và tạo hợp đồng mới cho nhân viên này
+            <br />
+        </div>
+        <div class="col-md-12">
+            <form method="post" asp-page-handler="UpdateEmployeeStatus">
+                <input type="hidden" name="EmpId" value="@employee.EmpId" />
+                <button type="submit" class="btn btn-primary btn-block">Kích hoạt nhân viên</button>
+                <br />
+            </form>
+        </div>
+    }
+    if (employee.Salary == 0)
+    {
+        //Check if this employee has salary
+        int countSalary = salaryRepository.GetSalaries().Where(x => x.EmpId == employee.EmpId && x.Status <= 2).Count();
+        if (countSalary == 0)
+        {
+            <div class="alert alert-warning" role="alert">
+                Nhân viên này chưa có hợp đồng, vui lòng tạo hợp đồng cho nhân viên này
+                <br />
+            </div>
+
+            <form method="post" asp-page-handler="CreateSalary">
+                <input type="hidden" name="empId" value="@employee.EmpId" />
+                <button type="submit" class="btn btn-primary btn-block">Tạo hợp đồng </button>
+                <br />
+            </form>
+        } else
+        {
+            <div class="alert alert-warning" role="alert">
+                Nhân viên này đã có hợp đồng chờ xác nhận, vui lòng chờ xác nhận hợp đồng
+                <br />
+            </div>
+        }
+    }
+    else //Already have Salary, check does it soon to expire if Yes -> Button to create new Salary
+    {
+        var salary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 3).FirstOrDefault();
+        if (salary != null)
+        {
+            if (salary.EndDate.AddDays(-7) < DateTime.Now)
+            {
+                // If this EmpID have 0 Salary with status == 2 then show button to create new Salary
+                if (existNewSalary == null)
+                {
+                    //Check is this employee have pending salary
+                    if (existPendingSalary != null)
+                    {
+                        <div class="alert alert-warning" role="alert">
+                            Nhân viên này đã có hợp đồng chờ xác nhận, vui lòng chờ xác nhận hợp đồng
+                            <br />
+                        </div>
+                                    //Create button for view salary information with salary.SalaryId
+                        <form method="post" asp-page-handler="ViewSalary">
+                            <input type="hidden" name="salaryId" value="@existPendingSalary.SalaryId" />
+                            <button type="submit" class="btn btn-primary btn-block">Xem thông tin hợp đồng chờ xác nhận </button>
+                            <br />
+                        </form>
+                    }
+                    else // If no Pending Salary
+                    {
+                                    //Button to create new Salary
+                        <div class="alert alert-warning" role="alert">
+                            Hợp đồng của nhân viên này sắp hết hạn, vui lòng tạo hợp đồng mới cho nhân viên này
+                            <br />
+                        </div>
+                        <form method="post" asp-page-handler="CreateSalary">
+                            <input type="hidden" name="empId" value="@employee.EmpId" />
+                            <button type="submit" class="btn btn-primary btn-block">Tạo hợp đồng</button>
+                            <br />
+                        </form>
+                    }
+                }
+            }
+        }
+
+        //Check is this employee have pending salary
+        if (existNewSalary != null)
+        {
+            if (existPendingSalary != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    Nhân viên này đã có hợp đồng chờ xác nhận, vui lòng chờ xác nhận hợp đồng
+                    <br />
+                </div>
+                //Create button for view salary information with salary.SalaryId
+                <form method="post" asp-page-handler="ViewSalary">
+                    <input type="hidden" name="salaryId" value="@existPendingSalary.SalaryId" />
+                    <button type="submit" class="btn btn-primary btn-block">Xem thông tin hợp đồng chờ xác nhận </button>
+                    <br />
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-success" role="alert">
+                    Nhân viên này đã có hợp đồng lao động
+                    <br />
+                </div>
+                //Create button for view salary information with salary.SalaryId
+                <form method="post" asp-page-handler="ViewSalary">
+                    <input type="hidden" name="salaryId" value="@existNewSalary.SalaryId" />
+                    <button type="submit" class="btn btn-primary btn-block">Xem thông tin hợp đồng</button>
+                    <br />
+                </form>
+            }
+        }
+
+        //If this employee have 0 Salary with status != (Canceled, Expired) then show button to create new Salary
+        int countValidSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status < 4).Count();
+        if (countValidSalary == 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                Nhân viên này chưa có hợp đồng, vui lòng tạo hợp đồng cho nhân viên này
+                <br />
+            </div>
+            <form method="post" asp-page-handler="CreateSalary">
+                <input type="hidden" name="empId" value="@employee.EmpId" />
+                <button type="submit" class="btn btn-primary btn-block">Tạo hợp đồng</button>
+                <br />
+            </form>
+        }
+    }
+}
+else //Not Manager
+{
+    var salary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 3).FirstOrDefault();
+    var countValidSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status < 4).Count();
+    if (salary != null)
+    {
+        if (salary.EndDate.AddDays(-7) < DateTime.Now)
+        {
+            // If this EmpID have 0 Salary with status == 2 then show button to create new Salary
+            if (existNewSalary == null)
+            {
+                //If this employee have no pending salary
+                if (existPendingSalary == null)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        Hợp đồng của bạn sắp hết hạn, vui lòng liên hệ với quản lý để gia hạn hợp đồng
+                        <br />
+                    </div>
+                }
+            }
+        }
+    }
+    if (existNewSalary != null && employee.Status == 2)
+    {
+        <div class="alert alert-success" role="alert">
+            Hãy chờ đến ngày bắt đầu hợp đồng để bắt đầu công việc. Hẹn gặp lại bạn vào ngày @existNewSalary.StartDate
+            <br />
+        </div>
+    }
+    if (existPendingSalary != null)
+    {
+        <div class="alert alert-warning" role="alert">
+            Bạn đang có hợp đồng chờ xác nhận, vui lòng xác nhận hợp đồng
+            <br />
+        </div>
+        //Create button for view salary information with salary.SalaryId
+        <form method="post" asp-page-handler="ViewSalary">
+            <input type="hidden" name="salaryId" value="@existPendingSalary.SalaryId" />
+            <button type="submit" class="btn btn-primary btn-block">Xem thông tin hợp đồng chờ xác nhận </button>
+            <br />
+        </form>
+    }
+    if(countValidSalary == 0)
+    {
+        <div class="alert alert-warning" role="alert">
+            Hiện tại bạn chưa có hợp đồng, hãy chờ quản lý tạo hợp đồng cho bạn
+            <br />
+        </div>
+    }
+}
+
+<form method="post" asp-page-handler="UpdateEmployee">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="FullName">Họ và Tên</label>
+                <input type="text" class="form-control" id="FullName" name="FullName" value="@employee?.FullName" required @readonlyAttribute />
+            </div>
+            @if (ViewData["Name"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Name"]
+                </div>
+            }
+            <div class="form-group">
+                <label for="Birthday">Ngày sinh</label>
+                @{
+                    string inputDate = employee.Birthday?.ToString();
+                    string formattedDate = null;
+                    DateTime parsedDate;
+                    if (inputDate != null)
+                    {
+                        parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                        formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                    }
+                }
+                <input type="date" class="form-control" id="birthday" name="birthday" value="@formattedDate" @readonlyAttribute />
+            </div>
+            <div class="form-group">
+                <label for="UserName">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="UserName" name="UserName" value="@employee?.UserName" required @readonlyAttribute />
+            </div>
+            @if (ViewData["UserName"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["UserName"]
+                </div>
+            }
+            @if (employee.Salary != 0)
+            {
+                <div class="form-group">
+                    <label for="Salary">Lương</label>
+                    <input type="text" class="form-control" id="Salary" name="Salary" value="@employee?.Salary" readonly />
+                </div>
+            }
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNumber">Số điện thoại</label>
+                <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" value="@employee?.PhoneNumber" @readonlyAttribute />
+            </div>
+            @if (ViewData["PhoneNumber"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["PhoneNumber"]
+                </div>
+            }
+            <div class="form-group">
+                <label for="Address">Địa chỉ</label>
+                <input type="text" class="form-control" id="Address" name="Address" value="@employee?.Address" @readonlyAttribute />
+            </div>
+            <div class="form-group">
+                <label for="PosId">Chức vụ</label>
+                @if (role == "Manager")
+                {
+                    <select class="form-control" id="PosId" name="PosId" @readonlyAttribute>
+                        <option value="@currentPosition.PosId">@currentPosition.Name</option>
+                        @foreach (var position in positions)
+                        {
+                            if (position.PosId != employee.PosId)
+                            {
+                                <option value="@position.PosId">@position.Name</option>
+                            }
+                        }
+                    </select>
+                }
+                else
+                {
+                    <input type="text" class="form-control" id="PosId" name="PosId" value="@currentPosition.Name" @readonlyAttribute />
+                }
+            </div>
+            @if (ViewData["PositionId"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["PositionId"]
+                </div>
+            }
+            @if (employee.Salary != 0)
+            {
+                <div class="form-group">
+                    <label for="SalaryUpdateDate">Ngày cập nhật lương</label>
+                    @{
+                        inputDate = employee.SalaryUpdateDate.ToString();
+                        parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                        formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                    }
+                    <input type="date" class="form-control" id="SalaryUpdateDate" name="SalaryUpdateDate" value="@formattedDate" readonly />
+                </div>
+            }
+        </div>
+        @if (role == "Manager")
+        {
+            @if (employee.Salary != 0 || existNewSalary != null)
+            {
+                var salaryId = salaryRepository.GetSalaries().Where(x => x.EmpId == employee.EmpId && x.SalaryUpdateDate == employee.SalaryUpdateDate).FirstOrDefault();
+                if (salaryId == null)
+                    salaryId = existNewSalary;
+                HttpContext.Session.SetString("SalaryID", salaryId.SalaryId.ToString());
+
+                <div class="col-md-6">
+                    <a href="/Salary/View" class="btn btn-primary btn-block">Xem chi tiết thông tin hợp đồng</a>
+                    <br />
+                </div>
+                <div class="col-md-6">
+                    <a href="/Salary/History" class="btn btn-primary btn-block">Xem lịch sử các hợp đồng</a>
+                    <br />
+                </div>
+                
+                if (employee.Status != 0)
+                {
+                    <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">Cập nhật thông tin nhân viên</button>
+                    </div>
+                }
+            }
+
+            <p>
+                <a asp-page="./Manage">Quay về</a>
+            </p>
+        } 
+        else
+        {
+            @if (employee.Salary != 0 || existNewSalary != null)
+            {
+                var salaryId = salaryRepository.GetSalaries().Where(x => x.EmpId == employee.EmpId && x.SalaryUpdateDate == employee.SalaryUpdateDate).FirstOrDefault();
+                if (salaryId == null)
+                    salaryId = existNewSalary;
+                HttpContext.Session.SetString("SalaryID", salaryId.SalaryId.ToString());
+
+                <div class="col-md-4">
+                    <a href="/Employee/ChangePassword" class="btn btn-primary btn-block">Đổi mật khẩu</a>
+                    <br />
+                </div>
+                <div class="col-md-4">
+                    <a href="/Salary/View" class="btn btn-primary btn-block">Xem chi tiết thông tin hợp đồng</a>
+                    <br />
+                </div>
+                <div class="col-md-4">
+                    <a href="/Salary/History" class="btn btn-primary btn-block">Xem lịch sử các hợp đồng</a>
+                    <br />
+                </div>
+
+            }
+            else
+            {
+                <div class="col-md-12">
+                    <a href="/Employee/ChangePassword" class="btn btn-primary btn-block">Đổi mật khẩu</a>
+                    <br />
+                </div>
+            }
+        }
+        
+
+    </div>
+</form>

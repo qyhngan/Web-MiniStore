@@ -1,0 +1,116 @@
+﻿@page
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using BusinessObject;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.CreateModel
+@{
+    //get empID from session memory
+    int empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeID"));
+    //Get employee from empID
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    Employee employee = employeeRepository.GetEmployeeById(empId);
+
+    //Get Position Name from employee's position id
+    IPositionRepository positionRepository = new PositionRepository();
+    Position currentPosition = positionRepository.GetPositionById(employee.PosId);
+
+    Salary Salary(ViewDataDictionary viewData)
+    {
+        if (viewData == null)
+        {
+            return null;
+        }
+        return viewData["InputedData"] as Salary;
+    }
+    //print data geted from viewdata
+    Salary inputed = Salary(ViewData);
+    if (inputed == null)
+    {
+        inputed = new Salary();
+        inputed.StartDate = DateTime.Now;
+    }
+}
+
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @ViewData["Message"]
+    </div>
+
+    <a href="/Employee/Manage" class="btn btn-primary btn-right">Quay về</a>
+
+}
+
+
+<form method="post" asp-page-handler="AddSalary">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="FullName">Họ và Tên</label>
+                <input type="text" class="form-control" id="FullName" name="FullName" value="@employee?.FullName" readonly />
+            </div>
+            <div class="form-group">
+                <label for="Amount">Lương</label>
+                <input type="text" class="form-control" id="Amount" name="Amount" value="@inputed?.Amount" required />
+            </div>
+            @if (ViewData["Amount"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Amount"]
+                </div>
+            }
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="UserName">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="UserName" name="UserName" value="@employee?.UserName" readonly />
+            </div>
+
+            <div class="form-group">
+                <label for="StartDate">Ngày bắt đầu</label>
+                @{
+                    string inputDate = @inputed?.StartDate.ToString();
+                    DateTime parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                    string formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                }
+                <input type="date" class="form-control" id="StartDate" name="StartDate" value="@formattedDate" required />
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="Position">Chức vụ</label>
+                <input type="text" class="form-control" id="Position" name="Position" value="@currentPosition?.Name" readonly />
+            </div>
+            <div class="form-group">
+                <label for="EndDate">Ngày kết thúc</label>
+                @{
+                    inputDate = @inputed?.EndDate.ToString();
+                    parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                    if (inputDate == DateTime.MinValue.ToString())
+                    {
+                        formattedDate = null;
+                    }
+                    else
+                    {
+                        formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                    }
+                }
+                <input type="date" class="form-control" id="EndDate" name="EndDate" value="@formattedDate" required />
+            </div>
+            @if (ViewData["EndDate"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["EndDate"]
+                </div>
+            }
+        </div>
+    </div>
+    <div class="row">
+    </div>
+    <button type="submit" class="btn btn-primary">Tạo mới</button>
+</form>
+

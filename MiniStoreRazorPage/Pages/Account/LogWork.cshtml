@@ -1,0 +1,32 @@
+﻿@page
+@model MiniStoreRazorPage.Pages.Account.LogWorkModel
+@{
+
+}
+
+@if (TempData["Success"] != null)
+{
+    <div id="success-alert" class="alert alert-success">
+        <strong>Ghi nhận thành công!</strong> Đợi 3 giây.
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/Index';
+        }, 3000);
+    </script>
+}
+else
+{
+    <div id="success-alert" class="alert alert-danger">
+        <strong>Ghi nhận thất bại!</strong> Đợi 3 giây.
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/Index';
+        }, 3000);
+    </script>
+}

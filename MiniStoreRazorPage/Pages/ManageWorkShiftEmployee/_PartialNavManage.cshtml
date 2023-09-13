@@ -1,0 +1,45 @@
+﻿@using Microsoft.AspNetCore.Http
+@using System.Security.Claims
+@using System.Linq
+
+@{
+    ClaimsIdentity claimsIdentity = (ClaimsIdentity)User.Identity;
+    string role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+}
+
+<ul class="nav nav-pills flex-column">
+    @if (claimsIdentity.IsAuthenticated)
+    {
+        @if (role == "Manager")
+        {
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="manageIndexWSE" asp-page="./Index">Phân công ca làm</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.HistoryShiftNavClass(ViewContext)" id="manageIndexWSE" asp-page="./HistoryWorkShift">Lịch sử ca làm</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.RequestListNavClass(ViewContext)" id="manageIndexWSE" asp-page="./RequestList">Danh sách các yêu cầu</a>
+            </li>
+        }
+        @if (role == "Sales" || role == "Guard")
+        {
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="manageIndexWSE" asp-page="./Index">Nhận ca</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.HistoryShiftNavClass(ViewContext)" id="manageIndexWSE" asp-page="./HistoryWorkShift">Lịch sử làm việc</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.FutureShiftNavClass(ViewContext)" id="manageIndexWSE" asp-page="./FutureWorkShift">Lịch sắp tới</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @ManageNavPages.RequestListNavClass(ViewContext)" id="manageIndexWSE" asp-page="./RequestList">Danh sách các yêu cầu</a>
+            </li>
+        }
+        @if (role == "User")
+        {
+
+        }
+    }
+</ul>

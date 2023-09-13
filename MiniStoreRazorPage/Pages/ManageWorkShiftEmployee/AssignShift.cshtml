@@ -1,0 +1,97 @@
+﻿@page "/AssignWorkShift"
+@model MiniStoreRazorPage.Pages.ManageWorkShiftEmployee.AssignShiftModel
+
+@{
+    ViewData["Title"] = "Assign";
+    ViewData["ActivePage"] = ManageNavPages.Index;
+    Layout = "~/Pages/ManageWorkShiftEmployee/_LayoutManageWorkShiftEmployee.cshtml";
+}
+
+
+@Html.Raw(Utils.JS.confirmUnassign())
+@Html.Raw(Utils.JS.confirmAssign())
+
+<h1>Assign</h1>
+
+<h4>Phân việc</h4>
+<hr />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Date)
+                    </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].StaffNum)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].ModifiedTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].ModifiedBy)
+                </th>
+                <th>
+                    Employee Name
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.WorkShiftEmployee)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Date)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StaffNum)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ModifiedTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NameModifiedBy)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NameEmp)
+                    <select id="mySelect-@item.WsempId" class="form-control" asp-items="ViewBag.EmpCbo"></select>
+                    </td>
+                    <td>
+                    <form method="post" id="myForm-@item.WsempId">
+                            <div class="form-group">
+                                <input type="hidden" name="wsid" value="@item.WorkShiftId" />
+                                <input type="hidden" name="staffNo" value="@item.StaffNum" />
+                                <input type="hidden" name="wsempid" value="@item.WsempId" />
+                            <button type="submit" asp-page-handler="Assign" onclick="submitForm('@item.WsempId')">Phân công</button>
+                            <button type="submit" asp-page-handler="Unassign" onclick="submitForm('@item.WsempId')">Hủy phân công</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr> 
+            }
+        </tbody>
+    </table>
+
+
+<div>
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    <script>
+        function submitForm(id) {
+            var selectValue = document.getElementById("mySelect-" + id).value;
+            var hiddenInput = document.createElement("input");
+            hiddenInput.type = "hidden";
+            hiddenInput.name = "selectedValue";
+            hiddenInput.value = selectValue;
+            document.getElementById("myForm-" + id).appendChild(hiddenInput);
+        }
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

@@ -1,0 +1,122 @@
+﻿@page
+@using System.Security.Claims;
+@using Repository;
+@using Repository.Implement;
+@using Utils;
+@model MiniStoreRazorPage.Pages.Employee.ManageModel
+<style>
+    .middle-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+@{
+    ClaimsIdentity claimsIdentity = (ClaimsIdentity)User.Identity;
+    string role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    var employees = employeeRepository.GetEmployees().Where(x => x.PosId != 1);
+}
+
+@Html.Raw(Utils.JS.confirmDelete())
+@if (ViewData["Message"] != null)
+{
+    <script>
+        var message = @Html.Raw(Json.Serialize(ViewData["Message"].ToString()));
+        alert(message);
+    </script>
+}
+
+
+<h2 class="middle-cell">Quản lí nhân viên</h2>
+
+<a href="/Employee/Create" class="btn btn-primary">Tạo nhân viên mới</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th class="middle-cell">Mã nhân viên</th>
+            <th class="middle-cell">Họ và tên</th>
+            <th class="middle-cell">SĐT</th>
+            <th class="middle-cell">Trạng thái</th>
+            <th class="middle-cell">Tên đăng nhập</th>
+            <th class="middle-cell">Chức vụ</th>
+            <th class="middle-cell">Ghi chú</th>
+            <th class="middle-cell">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var employee in employees)
+        {
+            <tr>
+                <td class="middle-cell">@employee.EmpId</td>
+                <td class="middle-cell">
+                    <form method="post" asp-page-handler="UpdateEmployee">
+                        <input type="hidden" name="empId" value="@employee.EmpId" />
+                        <button type="submit" class="btn btn-link" onclick="handleButtonClick(@employee.EmpId)">@employee.FullName</button>
+                    </form>
+                </td>
+                <td class="middle-cell">@employee.PhoneNumber</td>
+                @{
+                    string statusText = Utils.Status.EmployeeStatus.ContainsKey(@employee.Status) ? Utils.Status.EmployeeStatus[@employee.Status] : string.Empty;
+                    string cellStyle = "";
+                    switch (employee.Status)
+                    {
+                        case 0:
+                            cellStyle = "font-weight: bold; color: red;";
+                            break;
+                        case 1:
+                            cellStyle = "font-weight: bold; color: blue;";
+                            break;
+                        case 2:
+                            cellStyle = "font-weight: bold; color: #FFC300;";
+                            break;
+                    }
+                }
+                <td class="middle-cell" style="@cellStyle">@statusText</td>
+                <td class="middle-cell">@employee.UserName</td>
+                @{
+                    string positionText = Utils.Status.PositionID.ContainsKey(@employee.PosId) ? Utils.Status.PositionID[@employee.PosId] : string.Empty;
+                }
+                <td class="middle-cell">@positionText</td>
+                <td class="middle-cell">
+                    @{
+                        ISalaryRepository salaryRepository = new SalaryRepository();
+                        var salary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 3).FirstOrDefault();
+                        if (salary != null)
+                        {
+                            if (salary.EndDate.AddDays(-7) < DateTime.Now)
+                            {
+                                // If this EmpID have 0 Salary with status == 2 then show warning
+                                var existNewSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status == 2).FirstOrDefault();
+                                if (existNewSalary == null)
+                                {
+                                    <span class="text-warning font-weight-bold">Cần cập nhật hợp đồng mới</span>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            //if this EmpID have 0 Salary with status == 1 then show warning
+                            var countExistSalary = salaryRepository.GetSalaries().Where(s => s.EmpId == employee.EmpId && s.Status <= 2).Count();
+                            if (employee.PosId != 1 && employee.Status != 0 && countExistSalary == 0)
+                            {
+                                <span class="text-danger font-weight-bold">Cần tạo hợp đồng</span>
+                            }
+                        }
+                    }
+                </td>
+                <td class="middle-cell">
+                    <form method="post" asp-page-handler="UpdateEmployee">
+                        <input type="hidden" name="empId" value="@employee.EmpId" />
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </form>
+                    <form method="post" asp-page-handler="DeleteEmployee" onsubmit="return confirmDelete()">
+                        <input type="hidden" name="empId" value="@employee.EmpId" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

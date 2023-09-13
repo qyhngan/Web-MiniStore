@@ -1,0 +1,186 @@
+﻿@page
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using Utils;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.DetailModel
+@{
+    //Get Employee and Salary with EmpID in session memory
+    int EmpId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeID"));
+    if (EmpId == 0)
+    {
+        EmpId = Convert.ToInt32(HttpContext.Session.GetString("AccountID"));
+    }
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    var employee = employeeRepository.GetEmployeeById(EmpId);
+    ISalaryRepository salaryRepository = new SalaryRepository();
+    //Get First Date of Last Month
+    var firstDateOfLastMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1).ToString("yyyy-MM-dd");
+    //Get ast Date of Last Month
+    var lastDateOfLastMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1).ToString("yyyy-MM-dd");
+    //Get Error from ViewData
+    string error = ViewData["Error"] as string;
+
+    DateTime startDate = new DateTime();
+    DateTime endDate = new DateTime();
+    //Get StartDate and EndDate from ViewData
+    if (ViewData["StartDate"] != null)
+    {
+        startDate = DateTime.Parse(ViewData["StartDate"].ToString() );
+        endDate = DateTime.Parse(ViewData["EndDate"].ToString() );
+    }
+
+    //Get List of Object CountedShifts in ViewData as ListEnum<Object>
+    IEnumerable<CountedShift> countedShifts = ViewData["CountedShifts"] as IEnumerable<CountedShift>;
+    //Get Sum Of all countedShifts.SalaryIndex
+    double sumSalaryIndex = 0;
+    if (countedShifts != null)
+    {
+        foreach (var countedShift in countedShifts)
+        {
+            sumSalaryIndex += countedShift.SalaryIndex ?? 0;
+        }
+    }
+}
+
+<style>
+    .middle-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+@if (error != null)
+{
+    //If error is not null, show error
+    <div class="alert alert-danger" role="alert">
+        @error
+    </div>
+}
+
+<form method="post" asp-page-handler="CalculateSalary">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="StartDate">Ngày bắt đầu</label>
+        </div>
+        <div class="col-md-4">
+            <label for="EndDate">Ngày kết thúc</label>
+        </div>
+    </div>
+    <div class="row">
+        <input type="hidden" name="EmpId" value="@EmpId" />
+        <div class="col-md-4">
+            <input type="date" class="form-control" id="StartDate" name="StartDate" value="@firstDateOfLastMonth" />
+        </div>
+        <div class="col-md-4">
+            <input type="date" class="form-control" id="EndDate" name="EndDate" value="@lastDateOfLastMonth" />
+        </div>
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary btn-block">Tính Lương</button>
+        </div>
+    </div>
+    <br />
+    <br />
+</form>
+
+@if (countedShifts != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <a data-toggle="collapse" href="#countedShiftsTable" role="button" aria-expanded="false" aria-controls="countedShiftsTable" style="font-weight: bold; font-size: larger;">
+                Xem chi tiết
+            </a>
+            <div class="collapse" id="countedShiftsTable">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="middle-cell" scope="col">STT</th>
+                            <th class="middle-cell" scope="col">Giờ bắt đầu</th>
+                            <th class="middle-cell" scope="col">Giờ kết thúc</th>
+                            <th class="middle-cell" scope="col">Ngày</th>
+                            <th class="middle-cell" scope="col">Giờ Checkin</th>
+                            <th class="middle-cell" scope="col">Giờ Checkout</th>
+                            <th class="middle-cell" scope="col">Hệ số</th>
+                            <th class="middle-cell" scope="col">Lương</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int index = 1;
+                        }
+                        @foreach (var countedShift in countedShifts)
+                        {
+                            <tr>
+                                <td class="middle-cell">@index</td>
+                                <td class="middle-cell">@countedShift.StartTime</td>
+                                <td class="middle-cell">@countedShift.EndTime</td>
+                                <td class="middle-cell">@countedShift.Date.ToString("yyyy-MM-dd")</td>
+                                <td class="middle-cell">@countedShift.CheckinTime</td>
+                                <td class="middle-cell">@countedShift.CheckoutTime</td>
+                                <td class="middle-cell">@countedShift.SalaryIndex</td>
+                                @{
+                                    var Salary = salaryRepository.GetSalaryByEmpIdAndDate(EmpId, countedShift.Date);
+                                    DateTime checkInTime = @countedShift.CheckinTime ?? DateTime.MinValue;
+                                    DateTime checkOutTime = @countedShift.CheckoutTime ?? DateTime.MinValue;
+                                    TimeSpan timeDifference = checkOutTime.Subtract(checkInTime);
+                                    double hourDifference = timeDifference.TotalHours;
+                                    hourDifference = Math.Round(hourDifference, 2);
+                                    double TotalSalary = @Salary.Amount * hourDifference * @countedShift.SalaryIndex ?? 0;
+                                }
+                                <td class="middle-cell">@TotalSalary VNĐ</td>
+                                @{
+                                    index++;
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br/>
+<br/>
+
+    //Brief
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Thông tin lương</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="middle-cell" scope="col">Ngày bắt đầu</th>
+                        <th class="middle-cell" scope="col">Ngày kết thúc</th>
+                        <th class="middle-cell" scope="col">Tổng số công</th>
+                        <th class="middle-cell" scope="col">Lương/h</th>
+                        @*<th class="middle-cell" scope="col">Tổng thưởng</th>
+                        <th class="middle-cell" scope="col">Tổng giảm trừ </th>
+                        <th class="middle-cell" scope="col">Thực nhận </th>*@
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="middle-cell">@startDate</td>
+                        <td class="middle-cell">@endDate</td>
+                        <td class="middle-cell">@sumSalaryIndex</td>
+                        @{
+                            var Amount = salaryRepository.GetSalaryByEmpIdAndDate(EmpId, startDate);
+                        }
+                        <td class="middle-cell">@Amount.Amount VNĐ/h</td>
+                        @*<td class="middle-cell">0 VNĐ</td>
+                        <td class="middle-cell">0 VNĐ</td>
+                        @{
+                            var Total = Amount.Amount * sumSalaryIndex;
+                        }
+                        <td class="middle-cell">@Total VNĐ</td>*@
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<p>
+    <a asp-page="./Manage">Quay về</a>
+</p>

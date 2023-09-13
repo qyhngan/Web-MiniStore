@@ -1,0 +1,100 @@
+﻿@page
+@using System.Security.Claims;
+@using Repository;
+@using Repository.Implement;
+@using Utils;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.ManageModel
+@{
+    ClaimsIdentity claimsIdentity = (ClaimsIdentity)User.Identity;
+    string role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    var employees = employeeRepository.GetEmployees().Where(x => x.Status != 0 && x.PosId != 1);
+    ISalaryRepository salaryRepository = new SalaryRepository();
+    var salaries = salaryRepository.GetSalaries();
+    var employeesWithSalaries = from employee in employees
+                                join salary in salaries on new { Amount = employee.Salary, UpdateDate = employee.SalaryUpdateDate, EmpId = employee.EmpId }
+                                equals new { Amount = salary.Amount, UpdateDate = salary.SalaryUpdateDate, EmpId = salary.EmpId }
+                                select new { Employee = employee, Salary = salary };
+
+}
+<style>
+    .middle-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <a asp-page="/Salary/Export" class="btn btn-primary btn-block">Xuất lương tất cả nhân viên</a>
+    </div>
+    <br/>
+</div>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th class="middle-cell">Họ và tên</th>
+            <th class="middle-cell">Tên đăng nhập</th>
+            <th class="middle-cell">Trạng thái</th>
+            <th class="middle-cell">Chức vụ</th>
+            <th class="middle-cell">Lương</th>
+            <th class="middle-cell">Ngày bắt đầu HĐ</th>
+            <th class="middle-cell">Ngày kết thúc HĐ</th>
+            <th class="middle-cell">Tính Lương</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var employeesWithSalary in employeesWithSalaries)
+        {
+            <tr>
+                <td class="middle-cell">
+                    <form method="post" asp-page-handler="UpdateEmployee">
+                        <input type="hidden" name="empId" value="@employeesWithSalary.Employee.EmpId" />
+                        <button type="submit" class="btn btn-link" onclick="handleButtonClick(@employeesWithSalary.Employee.EmpId)">@employeesWithSalary.Employee.FullName</button>
+                    </form>
+                </td>
+                <td class="middle-cell">@employeesWithSalary.Employee.UserName</td>
+                @{
+                    string statusText = Utils.Status.EmployeeStatus.ContainsKey(@employeesWithSalary.Employee.Status) ? Utils.Status.EmployeeStatus[@employeesWithSalary.Employee.Status] : string.Empty;
+                    string cellStyle = "";
+                    switch (employeesWithSalary.Employee.Status)
+                    {
+                        case 1:
+                            cellStyle = "font-weight: bold; color: blue;";
+                            break;
+                        case 2:
+                            cellStyle = "font-weight: bold; color: #FFC300;";
+                            break;
+                    }
+                }
+                <td class="middle-cell" style="@cellStyle">@statusText</td>
+                @{
+                    string positionText = Utils.Status.PositionID.ContainsKey(@employeesWithSalary.Employee.PosId) ? Utils.Status.PositionID[@employeesWithSalary.Employee.PosId] : string.Empty;
+                }
+                <td class="middle-cell">@positionText</td>
+                <td class="middle-cell">@employeesWithSalary.Salary.Amount</td>
+                @{
+                    string inputDate = @employeesWithSalary.Salary?.StartDate.ToString();
+                    DateTime parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                    string formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                }
+                <td class="middle-cell">@formattedDate</td>
+                @{
+                    inputDate = @employeesWithSalary.Salary?.EndDate.ToString();
+                    parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                    formattedDate = parsedDate.ToString("yyyy-MM-dd");
+                }
+                <td class="middle-cell">@formattedDate</td>
+                <td class="middle-cell">
+                    <form method="post" asp-page-handler="CalculateSalary">
+                        <input type="hidden" name="empId" value="@employeesWithSalary.Employee.EmpId" />
+                        <button type="submit" class="btn btn-link" onclick="handleButtonClick(@employeesWithSalary.Employee.EmpId)">Tính lương</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

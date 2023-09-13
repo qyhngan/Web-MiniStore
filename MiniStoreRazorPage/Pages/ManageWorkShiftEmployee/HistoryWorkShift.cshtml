@@ -1,0 +1,292 @@
+﻿@page
+@model MiniStoreRazorPage.Pages.ManageWorkShiftEmployee.HistoryWorkShiftModel
+
+@{
+    ViewData["Title"] = "Details";
+    ViewData["ActivePage"] = ManageNavPages.HistoryShift;
+    Layout = "~/Pages/ManageWorkShiftEmployee/_LayoutManageWorkShiftEmployee.cshtml";
+    string background = "white";
+    string color = "black";
+    string cellCkeckin = "cell-null", cellCheckout = "cell-null", cellLogwork = "custom-cell-warning";
+
+}
+
+@if (Model.WorkShiftEmployee != null)
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Date)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].StartTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].EndTime)
+                </th>
+                @if (Model.RoleCurrentUser == "Manager")
+                {
+                    <th>
+                        @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].PositionName)
+                    </th>
+                }
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].StaffNum)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].IsWeekend)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].IsHoliday)
+                </th>
+                @if (Model.RoleCurrentUser == "Manager")
+                {
+                    <th>
+                        @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].EmpName)
+                    </th>
+                }
+                @if (Model.RoleCurrentUser == "Sales" || Model.RoleCurrentUser == "Guard")
+                {
+                    <th>
+                        @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Checkin)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Checkout)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].LogworkStatus)
+                    </th>
+                }
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Status)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.WorkShiftEmployee)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Date)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndTime)
+                    </td>
+                    @if (Model.RoleCurrentUser == "Manager")
+                    {
+                        <td>
+                            @Html.DisplayFor(modelItem => item.PositionName)
+                        </td>
+                    }
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StaffNum)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IsWeekend)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IsHoliday)
+                    </td>
+                    @if (Model.RoleCurrentUser == "Manager")
+                    {
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EmpName)
+                        </td>
+                    }
+                    @if (Model.RoleCurrentUser == "Sales" || Model.RoleCurrentUser == "Guard")
+                    {
+                        if (item.LogworkStatus == "Chưa điểm danh")
+                        {
+                            cellCkeckin = "custom-cell-present";
+                            cellCheckout = "custom-cell-present";
+                            cellLogwork = "custom-cell-present";
+                        }
+                        else if (item.LogworkStatus == "Đã hoàn thành")
+                        {
+                            cellCkeckin = "custom-cell-pass";
+                            cellCheckout = "custom-cell-pass";
+                            cellLogwork = "custom-cell-pass";
+                        }
+                        else if (item.LogworkStatus == "Đang làm việc")
+                        {
+                            cellCkeckin = "custom-cell-pass";
+                            cellLogwork = "custom-cell-present";
+                            cellCheckout = "custom-cell-present";
+                        }
+                        else if (item.LogworkStatus == "Vắng")
+                        {
+                            cellCkeckin = "cell-null";
+                            cellLogwork = "custom-cell-warning";
+                            cellCheckout = "cell-null";
+                        }
+
+                        <td class=@cellCkeckin>
+                            @Html.DisplayFor(modelItem => item.Checkin)
+                        </td>
+                        <td class=@cellCheckout>
+                            @Html.DisplayFor(modelItem => item.Checkout)
+                        </td>
+                        <td class=@cellLogwork>
+                            @Html.DisplayFor(modelItem => item.LogworkStatus)
+                        </td>
+                    }
+
+                    @if (item.Status == "Đã kết thúc")
+                    {
+                        <td class="custom-cell-pass">
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                    }
+                    else if (item.Status == "Đang diễn ra")
+                    {
+                        <td class="custom-cell-present">
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                    }
+                    else if (item.Status == "Cảnh báo")
+                    {
+                        <td class="custom-cell-warning">
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                    }
+                    else
+                    {
+                        <td class="custom-cell">
+                            @Html.DisplayFor(modelItem => item.Status)
+                        </td>
+                    }
+
+                    <td>
+                        @if (Model.RoleCurrentUser == "Manager")
+                        {
+
+                        }
+                        else if (Model.RoleCurrentUser == "Sales" || Model.RoleCurrentUser == "Guard")
+                        {
+                            if (item.LogworkStatus == "Chưa điểm danh")
+                            {
+                                <button class="btn-primary" border-dark>
+                                    <a class="nav-link text-dark" id="popupLink" asp-page="/Index" title="ManageBar">Điểm danh</a>
+                                </button>
+                            }
+                            else if (item.LogworkStatus == "Đang làm việc")
+                            {
+                                <button class="btn-primary" border-dark>
+                                    <a class="nav-link text-dark" id="popupLink" asp-page="/Index" title="ManageBar">Kết thúc ca</a>
+                                </button>
+
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+} else
+{
+    <h3>Không có dữ liệu!</h3>    
+}
+
+<div>
+    <a asp-page="./Index">Nhận ca</a>
+</div>
+
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .popup-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+    }
+</style>
+
+<script>
+    document.getElementById("popupLink").addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent the default link behavior
+
+        // Show the popup
+        document.getElementById("myPopup").style.display = "block";
+    });
+</script>
+
+<div id="myPopup" class="popup">
+    <div class="popup-content">
+        <h3>Enter Password</h3>
+        @{
+            string handler = "";
+            //if (item.LogworkStatus == "Chưa điểm danh")
+            //{
+            //    handler = "CheckIn";
+            //}
+            //else
+            //{
+            //    handler = "CheckOut";
+            //}
+        }
+        <form id="passwordForm" asp-page="/Account/LogWork" asp-page-handler=@handler>
+            <input type="password" id="passwordInput" name="password" placeholder="Password" />
+            <button type="submit">Submit</button>
+            <button type="button" id="cancelButton" asp-page="/Index">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+
+<style>
+    .custom-cell-pass {
+        background-color: green;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell-warning {
+        background-color: red;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell-present {
+        background-color: yellow;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell {
+        background-color: white;
+        color: black;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .cell-null {
+        background-color: black;
+        color: black;
+        font-weight: bold;
+    }
+</style>

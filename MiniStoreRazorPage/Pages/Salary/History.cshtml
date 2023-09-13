@@ -1,0 +1,74 @@
+﻿@page
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using BusinessObject;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.HistoryModel
+@{
+    string role = HttpContext.Session.GetString("Role");
+    int accID = Convert.ToInt32(HttpContext.Session.GetString("AccID"));
+    int empId = 0;
+    //If role is Manager
+    if (role == "Manager")
+    {
+        //get empID from session memory
+        empId = Convert.ToInt32(HttpContext.Session.GetString("EmployeeID"));
+    }
+    else
+    {
+        empId = accID;
+    }
+    ISalaryRepository salaryRepository = new SalaryRepository();
+    var salaries = salaryRepository.GetSalaries().Where(x => x.EmpId == empId).OrderByDescending(x => x.CreatedTime);
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    var employee = employeeRepository.GetEmployees().Where(x => x.EmpId == empId).FirstOrDefault();
+}
+<style>
+    .text-center {
+        text-align: center;
+    }
+</style>
+<div class="text-center">
+    <h2>Lịch sử hợp đồng</h2>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col" class="text-center">Mã hợp đồng</th>
+            <th scope="col" class="text-center">Tên tài khoản</th>
+            <th scope="col" class="text-center">Ngày bắt đầu</th>
+            <th scope="col" class="text-center">Ngày kết thúc</th>
+            <th scope="col" class="text-center">Lương</th>
+            <th scope="col" class="text-center">Trạng thái</th>
+            <th scope="col" class="text-center">Ngày tạo</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var salary in salaries)
+        {
+            <tr>
+                <td class="text-center">@salary.EmpId</td>
+                <td class="text-center">@employee.UserName</td>
+                <td class="text-center">@salary.StartDate.ToString("dd/MM/yyyy")</td>
+                <td class="text-center">@salary.EndDate.ToString("dd/MM/yyyy")</td>
+                @{
+                    var amount = @salary.Amount.ToString("C", CultureInfo.CreateSpecificCulture("vi-VN")) + "/giờ";
+                }
+                <td class="text-center">@amount</td>
+                @{
+                    var statusText = Utils.Status.SalaryStatus.ContainsKey(@salary.Status) ? Utils.Status.SalaryStatus[@salary.Status] : string.Empty;
+                }
+                <td class="text-center">@statusText</td>
+                <td class="text-center">@salary.CreatedTime.Date.ToString("dd/MM/yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+<p>
+    <a asp-page="/Employee/Update">Quay về</a>
+</p>

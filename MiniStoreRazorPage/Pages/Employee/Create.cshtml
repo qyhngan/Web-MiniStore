@@ -1,0 +1,99 @@
+﻿@page
+@using Repository;
+@using Repository.Implement;
+@using BusinessObject;
+@model MiniStoreRazorPage.Pages.Employee.CreateModel
+@{
+    IPositionRepository positionRepository = new PositionRepository();
+    var positions = positionRepository.GetPositions().Where(x => x.Name != "Manager" && x.Name != "User");
+    Employee Employee(ViewDataDictionary viewData)
+    {
+        if (viewData == null)
+        {
+            return null;
+        }
+        return viewData["InputedData"] as Employee;
+    }
+    //print data geted from viewdata
+    Employee inputed = Employee(ViewData);
+}
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @Html.Raw(ViewData["Message"]);
+    </div>
+
+    <a href="/Employee/Manage" class="btn btn-primary btn-right">Quay về</a>
+
+}
+
+<form method="post" asp-page-handler="AddEmployee">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="FullName">Họ và Tên</label>
+                <input type="text" class="form-control" id="FullName" name="FullName" value="@inputed?.FullName" required />
+            </div>
+            @if (ViewData["Name"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["Name"]
+                </div>
+            }
+            <div class="form-group">
+                <label for="Birthday">Ngày sinh</label>
+                <input type="date" class="form-control" id="Birthday" name="Birthday" value="@inputed?.Birthday" />
+            </div>
+            <div class="form-group">
+                <label for="UserName">Tên đăng nhập</label>
+                <input type="text" class="form-control" id="UserName" name="UserName" value="@inputed?.UserName" required />
+            </div>
+            @if (ViewData["UserName"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["UserName"]
+                </div>
+            }
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="PhoneNumber">Số điện thoại</label>
+                <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" value="@inputed?.PhoneNumber" />
+            </div>
+            @if (ViewData["PhoneNumber"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["PhoneNumber"]
+                </div>
+            }
+            <div class="form-group">
+                <label for="Address">Địa chỉ</label>
+                <input type="text" class="form-control" id="Address" name="Address" value="@inputed?.Address" />
+            </div>
+            <div class="form-group">
+                <label for="PosId">Chức vụ</label>
+                <select class="form-control" id="PosId" name="PosId">
+                    @if ((@inputed?.PosId ?? 0) != 0)
+                    {
+                        <option value=@inputed.PosId>@positions.Where(x => x.PosId == inputed.PosId).FirstOrDefault().Name</option>
+                    }
+                    else
+                    {
+                        <option value="">Select a Position</option>
+                    }
+                    @foreach (var pos in positions)
+                    {
+                        <option value="@pos.PosId">@pos.Name</option>
+                    }
+                </select>
+            </div>
+            @if (ViewData["PositionId"] != null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    @ViewData["PositionId"]
+                </div>
+            }
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Tạo mới</button>
+</form>

@@ -1,0 +1,87 @@
+﻿@page "/ManageWorkShiftEmployee"
+@model MiniStoreRazorPage.Pages.ManageWorkShiftEmployee.IndexModel
+
+@{
+    ViewData["ActivePage"] = ManageNavPages.Index;
+    Layout = "~/Pages/ManageWorkShiftEmployee/_LayoutManageWorkShiftEmployee.cshtml";
+    ViewData["Title"] = "Manage WorkShift";
+}
+
+<h1>Quản lí ca làm việc</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].Date)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].StartTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].EndTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].PositionName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].StaffNum)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].IsWeekend)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].IsHoliday)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.WorkShiftEmployee[0].EmpName)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.WorkShiftEmployee) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StartTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PositionName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StaffNum)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsWeekend)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsHoliday)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmpName)
+            </td>
+            <td>
+                    @if (Model.RoleCurrentUser == "Manager")
+                    {
+                        <a asp-page="./AssignShift" asp-route-id="@item.WorkShiftId">Phân công</a>
+                    }
+                    else if (Model.RoleCurrentUser == "Sales" || Model.RoleCurrentUser == "Guard")
+                    {
+                        <form method="post">
+                            <div class="form-group">
+                                <input type="hidden" name="wsid" value="@item.WorkShiftId" />
+                                <button type="submit" asp-page="./AssignShift" asp-page-handler="AssignMe" class="btn-primary">Nhận ca</button>
+                            </div>
+                        </form>
+                    }
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

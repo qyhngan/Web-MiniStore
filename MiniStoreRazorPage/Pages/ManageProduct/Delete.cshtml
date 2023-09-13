@@ -1,0 +1,136 @@
+﻿@page
+@model MiniStoreRazorPage.Pages.ManageProduct.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div id="success-alert" class="alert alert-success">
+        <strong>Thành công!</strong> Xóa thành công.
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/ManageProduct/Index';
+        }, 5000);
+    </script>
+}
+else {
+    if (ViewData["MessageFail"] != null)
+    {
+    <div id="success-alert" class="alert alert-danger">
+            <strong>Thất bại!</strong> @ViewData["MessageFail"]
+        </div>
+    }
+
+    if (TempData["Message"] != null)
+    {
+        <div id="success-alert" class="alert alert-danger">
+            @TempData["Message"]
+        </div>
+        <h1>Ngừng bán sản phẩm</h1>
+    }
+    
+
+<h3>?</h3>
+<div>
+    <h4>Product</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Phân loại:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Category.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Thương hiệu:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Brand.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Nguồn gốc:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Origin.Province)
+        </dd>
+        <dt class="col-sm-2">
+            Vị trí:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Location.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Tên sản phẩm:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Name)
+        </dd>
+        <dt class="col-sm-2">
+            Giá:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.UnitPrice)
+        </dd>
+        <dt class="col-sm-2">
+            Thuế:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Tax)
+        </dd>
+        <dt class="col-sm-2">
+            Loại đơn vị:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.UnitType)
+        </dd>
+        <dt class="col-sm-2">
+            Chiết khấu:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.DiscountAmount)
+        </dd>
+        <dt class="col-sm-2">
+            Số lượng trong kho:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.InStock)
+        </dd>
+        <dt class="col-sm-2">
+            Số lần bán:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.SaleCount)
+        </dd>
+        <dt class="col-sm-2">
+            Mô tả:
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.Description)
+        </dd>
+        <dt class="col-sm-2">
+            Ảnh
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Product.ImgUrl)
+        </dd>
+    </dl>
+    
+    <form method="post">
+        <input type="hidden" asp-for="Product.ProductId" />
+            @if (Model.IsDelete)
+            {
+                <input type="submit" value="Xóa" class="btn btn-danger" />
+            }
+            else
+            {
+                <input type="submit" value="Ngừng bán" class="btn btn-danger" />
+            }   
+            |<a asp-page="./Index">Quay về</a>
+    </form>
+</div>
+}

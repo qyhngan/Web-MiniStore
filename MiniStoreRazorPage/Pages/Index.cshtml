@@ -1,0 +1,106 @@
+﻿@page "/Index"
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Http;
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+    ClaimsIdentity claimsIdentity = (ClaimsIdentity)User.Identity;
+    string accID= claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    string role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+    HttpContext.Session.SetString("AccID", accID);
+    HttpContext.Session.SetString("Role", role);
+}
+
+<script src="~/js/site.js"></script>
+
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<style>
+    .popup {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .popup-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        width: 300px;
+        text-align: center;
+    }
+</style>
+
+<script>
+    document.getElementById("popupLink").addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent the default link behavior
+
+        // Show the popup
+        document.getElementById("myPopup").style.display = "block";
+    });
+</script>
+
+<div id="myPopup" class="popup">
+    <div class="popup-content">
+        <h3>Enter Password</h3>
+        @{
+            string handler = "";
+            if (Model.ButtonLogWork == 0)
+            {
+                handler = "CheckIn";
+            }
+            else
+            {
+                handler = "CheckOut";
+            }
+        }
+        <form id="passwordForm" asp-page="/Account/LogWork" asp-page-handler=@handler>
+            <input type="password" id="passwordInput" name="password" placeholder="Password" />
+            <button type="submit">Submit</button>
+            <button type="button" id="cancelButton" asp-page="/Index">Cancel</button>
+        </form>
+    </div>
+</div>
+
+@*-------------------------------------------------- chua announce --------------------------------------------------------------------*@
+
+@{
+    if (ViewData["AnnounceMessage"] != null)
+    {
+
+        <div id="popup" class="popup">
+            <p id="popup-message"></p>
+        </div>
+
+        @section Scripts {
+        <script>
+            function showPopup(message) {
+                var popup = document.getElementById('popup');
+                var messageElement = document.getElementById('popup-message');
+                messageElement.innerText = message;
+                popup.style.display = 'block';
+
+                setTimeout(function () {
+                    popup.style.display = 'none';
+                }, 5000);
+            }
+
+            // Usage example
+            showPopup('Action completed successfully!');
+        </script>
+    }
+    }
+}
+

@@ -1,0 +1,180 @@
+﻿@page
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using BusinessObject;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.ViewModel
+@{
+    //Get Role from session memory
+    string role = HttpContext.Session.GetString("Role");
+    //Get SalaryID From session memory
+    int salaryId = Convert.ToInt32(HttpContext.Session.GetString("SalaryID"));
+    //Get Salary with SalaryID
+    Salary salary = new SalaryRepository().GetSalaries().Where(x => x.SalaryId == salaryId).FirstOrDefault();
+    int salaryStatus = salary.Status;
+    //Get Employee with Salary.EmpId
+    Employee employee = new EmployeeRepository().GetEmployees().Where(x => x.EmpId == salary.EmpId).FirstOrDefault();
+    //Get Position with Employee.PosId
+    Position position = new PositionRepository().GetPositions().Where(x => x.PosId == employee.PosId).FirstOrDefault();
+}
+
+@Html.Raw(Utils.JS.confirm("Bạn muốn Hủy hợp đồng này ?"))
+
+<script>
+    function confirmDenide() {
+        {
+            var result = confirm("Bạn thực sự muốn Từ chối hợp đồng này ?");
+            if (result) {
+                {
+                    return true;
+                }
+            }
+            else {
+                {
+                    return false;
+                }
+            }
+        }
+    }
+</script>
+
+@if (ViewData["Cancel"] != null)
+{
+    <script>
+        alert("@Html.Raw(ViewData["Cancel"])");
+    </script>
+
+    if(role == "Manager")
+    {
+        //Redirect to Employee/Update
+        <script>
+                window.location.href = "/Employee/Update";
+        </script>
+        
+    }
+    else
+    {
+        <script>
+            window.location.href = "/Employee/Update";
+        </script>
+    }
+}
+@if (ViewData["Confirm"] != null)
+{
+    <a href="/Employee/Update" class="btn btn-primary btn-right">Quay về</a>
+    <br />
+    <script>
+        alert("@Html.Raw(ViewData["Confirm"])");
+    </script>
+}
+
+@if(role == "Manager")
+{
+    if (salaryStatus <= 1)
+    {
+        <form method="post" asp-page-handler="CancelSalary" onsubmit="return confirmAction()">
+            <input type="hidden" name="SalaryId" value="@salary.SalaryId" />
+            <button type="submit" class="btn btn-danger btn-block">Hủy hợp đồng</button>
+            <br />
+        </form>
+    } 
+    
+} else {
+    if (salaryStatus <= 1)
+    {
+        <div class="row">
+            <div class="col-md-1"></div> <!-- Empty column for 12.5% width -->
+            <div class="col-md-4">
+                <form method="post" asp-page-handler="ConfirmSalary">
+                    <input type="hidden" name="SalaryId" value="@salary.SalaryId" />
+                    <button type="submit" class="btn btn-primary btn-block">Đồng ý</button>
+                    <br />
+                </form>
+            </div>
+            <div class="col-md-2"></div> <!-- Empty column for 12.5% width -->
+            <div class="col-md-4">
+                <form method="post" asp-page-handler="DenideSalary" onsubmit="return confirmDenide()">
+                    <input type="hidden" name="SalaryId" value="@salary.SalaryId" />
+                    <button type="submit" class="btn btn-danger btn-block">Từ chối</button>
+                    <br />
+                </form>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    }
+}
+@if (salaryStatus == 2)
+{
+    <div class="alert alert-success" role="alert">
+        Hợp đồng đã được xác nhận
+    </div>
+    
+}
+else if (salaryStatus == 3)
+{
+    if (salary.EndDate.AddDays(-7) < DateTime.Now)
+    {
+        <div class="alert alert-warning" role="alert">
+            Hợp đồng gần hết hiệu lực
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success" role="alert">
+            Hợp đồng đang trong hiệu lực
+        </div>
+    }
+    //btn block xem lịch sử Hợp đồng
+    <a href="History" class="btn btn-primary btn-block">Xem lịch sử các hợp đồng</a>
+    <br />
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="FullName">Họ và Tên</label>
+            <input type="text" class="form-control" id="FullName" name="FullName" value="@employee?.FullName" readonly />
+        </div>
+        <div class="form-group">
+            <label for="Amount">Lương</label>
+            <input type="text" class="form-control" id="Amount" name="Amount" value="@salary?.Amount" readonly />
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="UserName">Tên đăng nhập</label>
+            <input type="text" class="form-control" id="UserName" name="UserName" value="@employee?.UserName" readonly />
+        </div>
+
+        <div class="form-group">
+            <label for="StartDate">Ngày bắt đầu</label>
+            @{
+                string inputDate = @salary?.StartDate.ToString();
+                DateTime parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                string formattedDate = parsedDate.ToString("yyyy-MM-dd");
+            }
+            <input type="date" class="form-control" id="StartDate" name="StartDate" value="@formattedDate" readonly />
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="form-group">
+            <label for="Position">Chức vụ</label>
+            <input type="text" class="form-control" id="Position" name="Position" value="@position?.Name" readonly />
+        </div>
+        <div class="form-group">
+            <label for="EndDate">Ngày kết thúc</label>
+            @{
+                inputDate = @salary?.EndDate.ToString();
+                parsedDate = DateTime.ParseExact(inputDate, "M/d/yyyy h:mm:ss tt", CultureInfo.InvariantCulture);
+                formattedDate = parsedDate.ToString("yyyy-MM-dd");
+            }
+            <input type="date" class="form-control" id="EndDate" name="EndDate" value="@formattedDate" readonly />
+        </div>
+    </div>
+</div>
+
+
+

@@ -1,0 +1,182 @@
+﻿@page
+@model MiniStoreRazorPage.Pages.ManageProduct.IndexModel
+
+@{
+    ViewData["Title"] = "Manage Product";
+}
+
+<h1>Quản lí sản phẩm</h1>
+
+<p>
+    <a asp-page="Create" class="btn btn-primary">Tạo sản phẩm mới</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Ảnh
+            </th>
+            <th>
+                Tên sản phẩm
+            </th>
+            <th>
+                Số lượng trong kho
+            </th>
+            <th>
+                Giá
+            </th>
+            <th>
+                Thuế
+            </th>
+            <th>
+                Phân loại
+            </th>
+            <th>
+                Thương hiệu
+            </th>
+            <th>
+                Nguồn gốc
+            </th>
+            <th>
+                Vị trí
+            </th>
+            <th>
+                Loại
+            </th>
+            <th>
+                Chiết khấu
+            </th>
+            <th>
+                Số lần bán
+            </th>
+            <th>
+                Mô tả
+            </th>
+            <th>
+                Trạng thái
+            </th>
+            <th>
+                Ngày tạo
+            </th>
+            <th>
+                Người tạo
+            </th>
+            <th>
+                Ngày chinh sửa
+            </th>
+            <th>
+                Người chỉnh sửa
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Product) {
+        <tr>
+                <td>
+                    <img src="@item.pd.ImgUrl" alt="Image Description" style="width: 100px; height: 100px;" />
+
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.pd.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.pd.InStock)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.pd.UnitPrice)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.pd.Tax)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.pd.Category.Name)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.Brand.Name)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.Origin.Province)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.Location.Name)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.UnitType)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.DiscountAmount)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.SaleCount)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.pd.Description)
+                </td>
+                @if (item.PStatus == "Đang bán")
+                {
+                    <td class="custom-cell-pass">
+                        @Html.DisplayFor(modelItem => item.PStatus)
+                    </td>
+                }
+                else if (item.PStatus == "Ngừng bán")
+                {
+                    <td class="custom-cell">
+                        @Html.DisplayFor(modelItem => item.PStatus)
+                    </td>
+                }
+                else
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PStatus)
+                    </td>
+                }
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.CreatedDate)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.CreatedBy)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.ModifiedDate)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.pd.ModifiedBy)
+            </td>
+            <td>
+                <a asp-page="./Edit" class="btn btn-primary" asp-route-id="@item.pd.ProductId">Sửa</a> 
+                <a asp-page="./Delete" class="btn btn-danger" asp-route-id="@item.pd.ProductId">Xóa</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+<style>
+    .custom-cell-pass {
+        background-color: green;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell-warning {
+        background-color: red;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell-present {
+        background-color: yellow;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+<style>
+    .custom-cell {
+        color: white;
+        background-color: black;
+        font-weight: bold;
+    }
+</style>

@@ -1,0 +1,115 @@
+﻿@page
+@using BusinessObject;
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Http;
+@using Repository;
+@using Repository.Implement;
+@using Utils;
+@using System.Globalization;
+@model MiniStoreRazorPage.Pages.Salary.ExportModel
+@{
+    ClaimsIdentity claimsIdentity = (ClaimsIdentity)User.Identity;
+    string role = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+    IEmployeeRepository employeeRepository = new EmployeeRepository();
+    //Get Error from ViewData
+    string error = ViewData["Error"] as string;
+
+    var period = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1).ToString("yyyy-MM");
+    var titlePeriod = DateTime.Parse(period).ToString("MM/yyyy");
+
+    if (ViewData["Period"] != null)
+    {
+        period = ViewData["Period"].ToString();
+        titlePeriod = DateTime.Parse(period).ToString("MM/yyyy");
+    }
+
+    IEnumerable<SalaryReport> salaryReports = ViewData["SalaryReports"] as IEnumerable<SalaryReport>;
+}
+
+<style>
+    .middle-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+@if (error != null)
+{
+    //If error is not null, show error
+    <div class="alert alert-danger" role="alert">
+        @error
+    </div>
+}
+
+
+<form method="post" asp-page-handler="CalculateSalary">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="Period">Kì Lương</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <input type="month" class="form-control" id="Period" name="Period" value="@period" />
+        </div>
+        <div class="col-md-6">
+            <button type="submit" class="btn btn-primary btn-block">Xuất Lương</button>
+        </div>
+    </div>
+    <br />
+    <br />
+</form>
+
+
+@if (salaryReports != null)
+{
+    <h3 class="middle-cell">Thống kê lương tháng @titlePeriod</h3>
+    <br />
+<br />
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="middle-cell" scope="col">STT</th>
+                        <th class="middle-cell" scope="col">Họ và tên</th>
+                        <th class="middle-cell" scope="col">Tên đăng nhập</th>
+                        <th class="middle-cell" scope="col">Lương cơ bản</th>
+                        <th class="middle-cell" scope="col">Tổng thưởng</th>
+                        <th class="middle-cell" scope="col">Tổng nhận</th>
+                        <th class="middle-cell" scope="col">Kì lương</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int index = 1;
+                    }
+                    @foreach (var salaryReport in salaryReports)
+                    {
+                        <tr>
+                            <td class="middle-cell">@index</td>
+                            @{
+                                var employee = employeeRepository.GetEmployeeById(salaryReport.EmpId);
+                            }
+                            <td class="middle-cell">@employee.FullName</td>
+                            <td class="middle-cell">@employee.UserName</td>
+                            <td class="middle-cell">@salaryReport.BaseSalary</td>
+                            <td class="middle-cell">@salaryReport.TotalBonus</td>
+                            <td class="middle-cell">@salaryReport.Total</td>
+                            <td class="middle-cell">@salaryReport.Period.ToString("MM/yyyy")</td>
+                            @{
+                                index++;
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br />
+    <br />
+}
+
+<p>
+    <a asp-page="./Manage">Quay về</a>
+</p>

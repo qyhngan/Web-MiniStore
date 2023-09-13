@@ -1,0 +1,81 @@
+﻿@page "/FutureWorkShift"
+@model MiniStoreRazorPage.Pages.ManageWorkShiftEmployee.FutureWorkShiftModel
+
+@{
+    ViewData["Title"] = "FutureWorkShift";
+    Layout = "~/Pages/ManageWorkShiftEmployee/_LayoutManageWorkShiftEmployee.cshtml";
+    ViewData["ActivePage"] = ManageNavPages.FutureShift;
+}
+
+@if (Model.WorkShiftEmployeee != null) {
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].Date)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].StartTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].EndTime)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].StaffNum)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].IsWeekend)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.WorkShiftEmployeee[0].IsHoliday)
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.WorkShiftEmployeee)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Date)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StaffNum)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IsWeekend)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IsHoliday)
+                    </td>
+                    <td>
+                        <form method="post">
+                            <div class="form-group">
+                                <input type="hidden" name="wsid" value="@item.WorkShiftId" />
+                                <input type="hidden" name="startdate" value="@item.StartTime" />
+                                <input type="hidden" name="enddate" value="@item.EndTime" />
+                                <button type="submit" asp-page="./CreateRequest" class="btn-danger" asp-page-handler="RequestFromWS">Yêu cầu hủy ca</button>
+                            </div>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+} else {
+    <h3>Không có dữ liệu!</h3>
+}
+
+<div>
+    <a asp-page="./Index">Nhận ca</a>
+</div>
+
+

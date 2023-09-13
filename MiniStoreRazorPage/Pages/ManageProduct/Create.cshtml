@@ -1,0 +1,119 @@
+﻿@page
+@model MiniStoreRazorPage.Pages.ManageProduct.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+@if (TempData["MessageError"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["MessageError"]
+    </div>
+}
+else if (TempData["Message"] != null)
+{
+    <div id="success-alert" class="alert alert-success">
+        <strong>Tạo sản phẩm thành côngi</strong>
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/ManageProduct/Index';
+        }, 3000);
+    </script>
+}
+
+<h4>Product</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="Product.Name" class="control-label">Tên sản phẩm</label>
+                <input asp-for="Product.Name" class="form-control" />
+                <span asp-validation-for="Product.Name" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Product.CategoryId" class="control-label">Phân loại</label>
+                <select asp-for="Product.CategoryId" class="form-control" asp-items="ViewBag.CategoryCbo"></select>
+                <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+            </div>
+
+            
+            <div class="form-group">
+                <label asp-for="Product.BrandId" class="control-label">Thương hiệu</label>
+                <select asp-for="Product.BrandId" class="form-control" asp-items="ViewBag.BrandCbo"></select>
+                <span asp-validation-for="Product.BrandId" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Product.OriginId" class="control-label">Nguồn gốc</label>
+                <select asp-for="Product.OriginId" class="form-control" asp-items="ViewBag.OriginCbo"></select>
+                <span asp-validation-for="Product.OriginId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Product.LocationId" class="control-label">Vị trí</label>
+                <select asp-for="Product.LocationId" class="form-control" asp-items="ViewBag.LocationCbo"></select>
+                <span asp-validation-for="Product.LocationId" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Product.UnitPrice" class="control-label">Giá</label>
+                <input asp-for="Product.UnitPrice" class="form-control" />
+                <span asp-validation-for="Product.UnitPrice" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Product.Tax" class="control-label">Thuế</label>
+                <input asp-for="Product.Tax" class="form-control" />
+                <span asp-validation-for="Product.Tax" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Product.UnitType" class="control-label">Đơn vị</label>
+                <select asp-for="Product.UnitType" class="form-control" asp-items="ViewBag.UnitTypeCbo"></select>
+                <span asp-validation-for="Product.UnitType" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Product.DiscountAmount" class="control-label">Giá giảm</label>
+                <input asp-for="Product.DiscountAmount" class="form-control" />
+                <span asp-validation-for="Product.DiscountAmount" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Product.InStock" class="control-label">Số lượng nhập </label>
+                <input asp-for="Product.InStock" class="form-control" />
+                <span asp-validation-for="Product.InStock" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Product.Description" class="control-label">Mô tả</label>
+                <input asp-for="Product.Description" class="form-control" />
+                <span asp-validation-for="Product.Description" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="Product.ImageFile">Url Ảnh </label>
+                <input asp-for="Product.ImageFile" class="form-control-file" />
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary"></input>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

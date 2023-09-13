@@ -1,0 +1,211 @@
+﻿@page "/RequestList"
+@model MiniStoreRazorPage.Pages.ManageWorkShiftEmployee.RequestListModel
+
+
+@{
+    ViewData["Title"] = "Request List";
+    Layout = "~/Pages/ManageWorkShiftEmployee/_LayoutManageWorkShiftEmployee.cshtml";
+    ViewData["ActivePage"] = ManageNavPages.RequestList;
+    string colorStatus = "";
+}
+
+
+@if (TempData["Success"] == "Từ chối yêu cầu thành công")
+{
+    <div id="success-alert" class="alert alert-success">
+        <strong>Từ chối thành công!</strong> Đợi 3 giây.
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/RequestList';
+        }, 3000);
+    </script>
+}
+else if (TempData["Success"] == "Không tìm thấy yêu cầu")
+{
+    <div id="success-alert" class="alert alert-danger">
+        <strong>Từ chối thất bại!</strong> Đợi 3 giây.
+    </div>
+
+    <script>
+        setTimeout(function () {
+            $('#success-alert').alert('close');
+            window.location.href = '/RequestList';
+        }, 3000);
+    </script>
+}
+else
+{
+ 
+
+
+<form method="post">
+    <div class="form-group">
+        <label for="status">Trạng thái</label>
+        <select class="form-control" id="status" name="status">
+            <option value="0">Tất cả</option>
+            <option value="1">Chờ duyệt</option>
+            <option value="2">Đã chấp nhận</option>
+            <option value="3">Đã từ chối</option>
+            <option value="4">Đã hủy</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="fromDate">Từ ngày</label>
+        <input type="date" class="form-control" id="fromDate" name="fromDate" />
+    </div>
+
+    <div class="form-group">
+        <label for="toDate">Đến ngày</label>
+        <input type="date" class="form-control" id="toDate" name="toDate" />
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Lọc</button>
+</form>
+
+@if (Model.Requests != null)
+{
+
+    <h1>Yêu cầu</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    Loại
+                </th>
+                <th>
+                    Ngày bắt đầu
+                </th>
+                <th>
+                    Ngày kết thúc
+                </th>
+                <th>
+                    Loại ngày nghỉ
+                </th>
+                <th>
+                    Lí do
+                </th>
+                <th>
+                    Chi tiết lí do
+                </th>
+                <th>
+                    Người tạo
+                </th>
+                <th>
+                    Thời gian tạo
+                </th>
+                <th>
+                    Người chỉnh sửa
+                </th>
+                <th>
+                    Thời gian sửa
+                </th>
+                <th>
+                    Trạng thái
+                </th>
+                <th>
+                    Người xét duyệt
+                </th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Requests)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Type)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PartialDay)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Reason)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DetailReason)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Requester)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CreatedTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ModifiedBy)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ModifiedTime)
+                    </td>
+                    @if (item.StatusId == 0) { colorStatus = "text-primary"; }
+                    else if (item.StatusId == 1) { colorStatus = "text-success"; }
+                    else if (item.StatusId == 2) { colorStatus = "text-danger"; }
+                    else if (item.StatusId == 3) { colorStatus = "text-warning"; }
+
+                    <td class="@colorStatus font-weight-bold">
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Approver)
+                    </td>
+                    <td>
+                        @if (Model.Role == "Manager" && item.isButton != 0)
+                        {
+                            <form method="post">
+                                <div class="form-group">
+                                    <input type="hidden" name="rid" value="@item.RequestId" />
+                                    <button type="submit" asp-page="./RequestList" asp-page-handler="ApproveRequest" class="btn-primary">Chấp nhận</button>
+                                    <button type="submit" asp-page="./RequestList" asp-page-handler="RejectRequest" class="btn-danger">Từ chối</button>
+                                </div>
+                            </form>
+                        }
+                        else if (Model.Role == "Sales" || Model.Role == "Guard")
+                        {
+                            <form method="post">
+                                <div class="form-group">
+                                    <input type="hidden" name="rid" value="@item.RequestId" />
+                                    @*<button type="submit" asp-page="./RequestList" asp-page-handler="EditRequest" class="btn-primary">Sửa yêu cầu</button>*@
+                                    <button type="submit" asp-page="./RequestList" asp-page-handler="CancelRequest" class="btn-danger">Hủy yêu cầu</button>
+
+                                </div>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+        @*<nav>
+            <ul class="pagination">
+                <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                    <a class="page-link" href="@(Url.Page("./RequestList", new { page = Model.PageNumber - 1 }))">Previous</a>
+                </li>
+                @for (int i = 1; i <= Model.totalPages; i++)
+                {
+                    <li class="page-item @(Model.PageNumber == i ? "active" : "")">
+                        <a class="page-link" href="@(Url.Page("./RequestList", new { page = i }))">@i</a>
+                    </li>
+                }
+                <li class="page-item @(Model.PageNumber == Model.totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@(Url.Page("./RequestList", new { page = Model.PageNumber + 1 }))">Next</a>
+                </li>
+            </ul>
+        </nav>*@
+}
+else
+{
+    <h2>Không có yêu cầu để hiển thị</h2>
+}
+}
